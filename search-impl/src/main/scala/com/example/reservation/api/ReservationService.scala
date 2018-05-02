@@ -5,25 +5,20 @@ import java.util.UUID
 
 import akka.NotUsed
 import com.lightbend.lagom.scaladsl.api.broker.Topic
-import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
+import com.lightbend.lagom.scaladsl.api.broker.kafka.{ KafkaProperties, PartitionKeyStrategy }
 import com.lightbend.lagom.scaladsl.api.transport.Method
-import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
-import play.api.libs.json.{Format, Json}
+import com.lightbend.lagom.scaladsl.api.{ Service, ServiceCall }
+import play.api.libs.json.{ Format, Json }
 
 object ReservationService  {
   val TopicName = "reservations"
 }
 
 /**
-  * The reservation service interface.
-  * <p>
-  * This describes everything that Lagom needs to know about how to serve and
-  * consume the ReservationService.
+  * This is a scala equivalent of the actual ReservationService so I can
+  * call a javadsl service using a scaladsl client.
   */
 trait ReservationService extends Service {
-
-  def reserve(listingId: UUID): ServiceCall[Reservation, ReservationAdded]
-  def getCurrentReservations(listingId: UUID): ServiceCall[NotUsed, Seq[Reservation]]
 
   def reservationEvents: Topic[ReservationAdded]
 
@@ -31,10 +26,6 @@ trait ReservationService extends Service {
     import Service._
     // @formatter:off
     named("reservation")
-      .withCalls(
-        restCall(Method.POST, "/api/listing/:id/reservation", reserve _),
-        restCall(Method.GET, "/api/listing/:id/reservations", getCurrentReservations _)
-      )
       .withTopics(
         topic(ReservationService.TopicName, reservationEvents _)
           .addProperty(
