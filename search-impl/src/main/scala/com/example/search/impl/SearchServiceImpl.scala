@@ -1,19 +1,18 @@
 package com.example.search.impl
 
-import java.io.{File, FileInputStream, FileOutputStream}
 import java.time.LocalDate
 import java.util.UUID
 
 import akka.Done
-import akka.actor.{Actor, ActorSystem, Props, Status}
-import com.lightbend.lagom.scaladsl.api.ServiceCall
-import com.example.search.api.{ListingSearchResult, SearchService}
-import com.example.reservation.api.{ReservationAdded, ReservationService}
-import com.lightbend.lagom.scaladsl.api.transport.NotFound
+import akka.actor.{ Actor, ActorSystem, Props, Status }
 import akka.pattern.ask
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
-import play.api.libs.json.{Format, Json}
+import com.example.reservation.api.{ ReservationAdded, ReservationService }
+import com.example.search.api.{ ListingSearchResult, SearchService }
+import com.lightbend.lagom.scaladsl.api.ServiceCall
+import com.lightbend.lagom.scaladsl.api.transport.NotFound
+import play.api.libs.json.{ Format, Json }
 
 import scala.concurrent.duration._
 
@@ -23,14 +22,17 @@ import scala.concurrent.duration._
 class SearchServiceImpl(reservationService: ReservationService, actorSystem: ActorSystem) extends SearchService {
 
   import SearchActor._
+
   private val searchActor = actorSystem.actorOf(Props[SearchActor])
   implicit val searchActorTimeout = Timeout(10.seconds)
 
-  reservationService.reservationEvents.subscribe.atLeastOnce(Flow[ReservationAdded].mapAsync(1) { reservation =>
-    println(s"Got message: $reservation")
-
-    (searchActor ? reservation).mapTo[Done]
-  })
+  reservationService
+    .reservationEvents
+    .subscribe
+    .withGroupId(UUID.randomUUID().toString)
+    .atLeastOnce(Flow[ReservationAdded].mapAsync(1) { reservation =>
+      (searchActor ? reservation).mapTo[Done]
+    })
 
   override def searchListings(checkin: LocalDate, checkout: LocalDate) = ServiceCall { _ =>
     (searchActor ? Search(checkin, checkout)).mapTo[Seq[ListingSearchResult]]
@@ -41,12 +43,14 @@ class SearchServiceImpl(reservationService: ReservationService, actorSystem: Act
   }
 }
 
+
 private object SearchActor {
   case class Search(checkin: LocalDate, checkout: LocalDate)
   case class ListingName(listingId: UUID)
 }
 
 private class SearchActor extends Actor {
+
   import SearchActor._
 
   val repo = new SearchRepository
@@ -72,12 +76,25 @@ private class SearchActor extends Actor {
   */
 private class SearchRepository {
 
+
   private var reservations: Map[UUID, ListingIndex] =
     Seq(
-      ListingSearchResult(UUID.randomUUID(), "Beach house with wonderful views", "beachhouse.jpeg", 280),
-      ListingSearchResult(UUID.randomUUID(), "Villa by the water", "villa.jpeg", 350),
-      ListingSearchResult(UUID.randomUUID(), "Budget hotel convenient to town centre", "hotel.jpeg", 120),
-      ListingSearchResult(UUID.randomUUID(), "Quaint country B&B", "bnb.jpeg", 180)
+      ListingSearchResult(
+        UUID.fromString("673500f8-1068-4866-bb86-02a9f0011296"),
+        "Beach house with wonderful views", "beachhouse.jpeg",
+        280),
+      ListingSearchResult(
+        UUID.fromString("673500f8-1068-4866-bb86-02a9f0011297"),
+        "Villa by the water", "villa.jpeg",
+        350),
+      ListingSearchResult(
+        UUID.fromString("673500f8-1068-4866-bb86-02a9f0011298"),
+        "Budget hotel convenient to town centre", "hotel.jpeg",
+        120),
+      ListingSearchResult(
+        UUID.fromString("673500f8-1068-4866-bb86-02a9f0011299"),
+        "Quaint country B&B", "bnb.jpeg"
+        , 180)
     ).map { listing =>
       listing.listingId -> ListingIndex(listing, Set.empty)
     }.toMap
@@ -120,6 +137,7 @@ private class SearchRepository {
 }
 
 private case class ListingIndex(listing: ListingSearchResult, reservations: Set[ReservationAdded])
+
 private object ListingIndex {
   implicit val format: Format[ListingIndex] = Json.format
 }
