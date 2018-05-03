@@ -1,12 +1,12 @@
 package com.example.reservation.impl.entity;
 
 import com.example.reservation.api.Reservation;
-import com.example.reservation.impl.entity.ReservationCommand.*;
-import com.example.reservation.impl.entity.ReservationEvent.*;
+import com.example.reservation.impl.entity.ReservationCommand.AddReservation;
+import com.example.reservation.impl.entity.ReservationCommand.GetCurrentReservations;
+import com.example.reservation.impl.entity.ReservationEvent.ReservationAdded;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import org.pcollections.PSequence;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
