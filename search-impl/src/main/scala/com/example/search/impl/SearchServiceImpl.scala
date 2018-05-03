@@ -71,19 +71,8 @@ private class SearchActor extends Actor {
   * Not at all an efficient index, but this is a demo and this code isn't the subject of the demo
   */
 private class SearchRepository {
-  private val reservationFile = new File("./target/search-index.json")
 
-  private var reservations: Map[UUID, ListingIndex] = if (reservationFile.exists()) {
-    val is = new FileInputStream(reservationFile)
-    try {
-      val raw = Json.parse(is).as[Map[String, ListingIndex]]
-      raw.map {
-        case (id, index) => UUID.fromString(id) -> index
-      }
-    } finally {
-      is.close()
-    }
-  } else {
+  private var reservations: Map[UUID, ListingIndex] =
     Seq(
       ListingSearchResult(UUID.randomUUID(), "Beach house with wonderful views", "beachhouse.jpeg", 280),
       ListingSearchResult(UUID.randomUUID(), "Villa by the water", "villa.jpeg", 350),
@@ -92,31 +81,12 @@ private class SearchRepository {
     ).map { listing =>
       listing.listingId -> ListingIndex(listing, Set.empty)
     }.toMap
-  }
-
-  if (!reservationFile.exists()) {
-    writeOut()
-  }
-
-  private def writeOut(): Unit = {
-    val json = Json.stringify(Json.toJson(reservations.map {
-      case (id, index) => id.toString -> index
-    }))
-    val os = new FileOutputStream(reservationFile)
-    try {
-      os.write(json.getBytes("utf-8"))
-      os.flush()
-    } finally {
-      os.close()
-    }
-  }
 
   def add(reservation: ReservationAdded): Done = {
     reservations.get(reservation.listingId) match {
       case Some(ListingIndex(listing, res)) =>
         if (res.forall(_.reservationId != reservation.reservationId)) {
           reservations += (listing.listingId -> ListingIndex(listing, res + reservation))
-          writeOut()
         }
         Done
       case None =>

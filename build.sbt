@@ -21,7 +21,7 @@ lazy val `reservation-api` = (project in file("reservation-api"))
   )
 
 lazy val `reservation-impl` = (project in file("reservation-impl"))
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
@@ -41,7 +41,7 @@ lazy val `search-api` = (project in file("search-api"))
   )
 
 lazy val `search-impl` = (project in file("search-impl"))
-  .enablePlugins(LagomScala)
+  .enablePlugins(LagomScala, SbtReactiveAppPlugin)
   .settings(
     libraryDependencies ++= Seq(
       lagomScaladslKafkaClient,
@@ -51,7 +51,7 @@ lazy val `search-impl` = (project in file("search-impl"))
   .dependsOn(`search-api`)
 
 lazy val `web-gateway` = (project in file("web-gateway"))
-  .enablePlugins(PlayScala && LagomPlay)
+  .enablePlugins(PlayScala && LagomPlay && SbtReactiveAppPlugin)
   .disablePlugins(PlayLayoutPlugin, PlayFilters)
   .dependsOn(`search-api`)
   .settings(
@@ -64,5 +64,7 @@ lazy val `web-gateway` = (project in file("web-gateway"))
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
-    lagomWatchDirectories ++= (sourceDirectories in(Compile, TwirlKeys.compileTemplates)).value
+    lagomWatchDirectories ++= (sourceDirectories in(Compile, TwirlKeys.compileTemplates)).value,
+    httpIngressPaths := Seq("/")
+
   )

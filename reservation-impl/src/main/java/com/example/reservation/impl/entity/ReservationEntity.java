@@ -4,6 +4,7 @@ import com.example.reservation.api.Reservation;
 import com.example.reservation.impl.entity.ReservationCommand.*;
 import com.example.reservation.impl.entity.ReservationEvent.*;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
+import org.pcollections.PSequence;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,9 +52,8 @@ public class ReservationEntity extends PersistentEntity<ReservationCommand, Rese
     }
 
     private ReservationState reservationAdded(ReservationAdded event) {
-        List<Reservation> reservations = state().getReservations();
-        reservations.add(event.getReservation());
-        return new ReservationState(reservations);
+        PSequence<Reservation> reservations = state().getReservations();
+        return new ReservationState(reservations.plus(event.getReservation()));
     }
 
 
