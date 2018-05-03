@@ -38,8 +38,7 @@ public interface ReservationService extends Service {
                     event -> event.getListingId().toString()
                 )
         )
-        .withSerializerFactory(new CustomJsonSerializerFactory())
-        .withAutoAcl(true);
+        .withSerializerFactory(new CustomJsonSerializerFactory());
   }
 
 

@@ -24,7 +24,6 @@ trait ReservationService extends Service {
 
   override final def descriptor = {
     import Service._
-    // @formatter:off
     named("reservation")
       .withTopics(
         topic(ReservationService.TopicName, reservationEvents _)
@@ -33,8 +32,6 @@ trait ReservationService extends Service {
             PartitionKeyStrategy[ReservationAdded](_.listingId.toString)
           )
       )
-      .withAutoAcl(true)
-    // @formatter:on
   }
 }
 
